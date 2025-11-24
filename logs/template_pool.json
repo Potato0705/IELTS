@@ -1,0 +1,31 @@
+{
+  "templates": [
+    {
+      "text": "You are an IELTS Writing Task 2 examiner. Evaluate essays according to official band descriptors.",
+      "fitness": 0.4284994401211213,
+      "metrics": {
+        "qwk": 0.5,
+        "pearson": 0.6630526192697351,
+        "rmse": 1.352081728298996,
+        "exact_acc": 0.125,
+        "adj_acc": 0.3541666666666667
+      },
+      "gen": 5,
+      "ts": 1763986540.2482421
+    },
+    {
+      "text": "You are a certified IELTS Writing Task 2 examiner. Score essays using TR, CC, LR, and GRA criteria.",
+      "fitness": 0.3378978614544558,
+      "metrics": {
+        "qwk": 0.4741966893865629,
+        "pearson": 0.5139164101114972,
+        "rmse": 1.4523687548277813,
+        "exact_acc": 0.09375,
+        "adj_acc": 0.3125
+      },
+      "gen": 3,
+      "ts": 1763906876.4492123
+    }
+  ],
+  "updated_at": 1763986540.2482421
+}

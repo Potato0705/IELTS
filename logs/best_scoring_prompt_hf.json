@@ -1,0 +1,44 @@
+{
+  "best_genome": {
+    "instruction_id": 0,
+    "instruction_text": null,
+    "strictness": 1,
+    "output_format": "scalar",
+    "icl_strategy": "score_balanced",
+    "k_shots": 8,
+    "rag_strategy": "none",
+    "use_summary": false,
+    "use_teacher": false,
+    "teacher_weight": 0.0
+  },
+  "best_metrics": {
+    "qwk": 0.5,
+    "pearson": 0.6630526192697351,
+    "rmse": 1.352081728298996,
+    "exact_acc": 0.125,
+    "adj_acc": 0.3541666666666667
+  },
+  "best_fitness": 0.4284994401211213,
+  "history_qwk": [
+    0.5055401662049861,
+    0.5055401662049861,
+    0.5055401662049861,
+    0.5055401662049861,
+    0.5
+  ],
+  "history_pearson": [
+    0.6472767428398201,
+    0.6472767428398201,
+    0.6472767428398201,
+    0.6472767428398201,
+    0.6630526192697351
+  ],
+  "history_rmse": [
+    1.3635890143294642,
+    1.3635890143294642,
+    1.3635890143294642,
+    1.3635890143294642,
+    1.352081728298996
+  ],
+  "single_model": "x-ai/grok-4.1-fast:free"
+}

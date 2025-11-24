@@ -1,0 +1,11 @@
+[
+  "llm_score",
+  "word_count",
+  "char_len",
+  "avg_word_len",
+  "comma_count",
+  "period_count",
+  "sentence_count",
+  "task_type_1",
+  "task_type_2"
+]
