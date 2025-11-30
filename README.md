@@ -1,0 +1,62 @@
+# IELTS 作文评分 Prompt 进化系统
+
+基于遗传算法的 IELTS 作文自动评分 Prompt 优化框架。
+
+## 功能特性
+
+- **结构化 Prompt 进化**：使用 PromptGenome + 遗传算法优化评分指令
+- **双模式 Few-shot ICL**：
+  - 策略模式：进化采样策略（random, balanced, extreme 等）
+  - 索引模式：直接进化示例索引列表（更精细控制）
+- **多指标评估**：QWK / Pearson / RMSE / Accuracy
+- **LLM 驱动变异**：基于偏差统计的智能 Prompt 优化
+- **模板池管理**：自动积累和复用高质量模板
+- **断点续传**：自动保存进度，网络中断后可继续运行
+
+## 快速开始
+
+### 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 配置环境
+
+配置 `.env` 文件：
+
+设置OPENROUTER_API_KEY环境变量
+
+```bash
+# API 配置
+export OPENROUTER_API_KEY=your_key_here
+```
+
+### 运行进化
+
+```bash
+python run_evolution.py
+```
+
+## 项目结构
+
+```
+├── evolver/              # 进化算法核心
+│   ├── alphaevolve_multi.py    # 主进化流程
+│   ├── prompt_evolver.py       # 遗传算子
+│   ├── data_aware_prompt.py    # Prompt 构建
+│   └── icl_sampler.py          # ICL 示例采样
+├── llm_api/              # LLM API 封装
+├── scorer/               # 评分器和特征提取
+├── data/                 # 数据集
+├── logs/                 # 运行日志和结果
+└── run_evolution.py      # 启动脚本
+```
+
+## 输出结果
+
+- `logs/best_scoring_prompt_hf.json` - 最佳 Prompt 配置
+- `logs/best_scoring_prompt_hf.txt` - 最佳 Prompt 文本
+- `logs/best_prompt_predictions_hf.csv` - 预测结果
+- `logs/metrics_curve_hf.png` - 指标曲线图
+- `logs/template_pool.json` - 模板池
