@@ -1,7 +1,31 @@
 # evolver/data_aware_prompt.py
 from __future__ import annotations
+import os
+import json
+from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
+
+# ========= 加载数据集特定的模板 =========
+
+def load_dataset_templates(dataset_name: str = None) -> Dict[str, Any]:
+    """根据数据集名称加载对应的 prompt 模板"""
+    if dataset_name is None:
+        dataset_name = os.getenv("DATASET_NAME", "ielts_chillies")
+    
+    templates_path = Path(__file__).parent / "prompt_templates.json"
+    
+    with open(templates_path, 'r', encoding='utf-8') as f:
+        all_templates = json.load(f)
+    
+    if dataset_name not in all_templates:
+        print(f"⚠️  未找到数据集 '{dataset_name}' 的模板，使用默认 'ielts_chillies'")
+        dataset_name = "ielts_chillies"
+    
+    return all_templates[dataset_name]
+
+# 全局加载当前数据集的模板
+_CURRENT_TEMPLATES = load_dataset_templates()
 
 # ========= Genome =========
 
@@ -31,30 +55,66 @@ class PromptGenome:
 
 
 # ========= Instruction templates =========
-# 静态模板池：instruction_text 为空时才用它
-INSTRUCTION_TEMPLATES: Dict[int, str] = {
-    0: (
-        "You are an IELTS Writing Task 2 examiner. "
-        "Assess the essay using the official band descriptors. "
-    ),
-    1: (
-        "You are an IELTS Writing Task 2 examiner. "
-        "Evaluate Task Response, Coherence and Cohesion, Lexical Resource, "
-        "and Grammatical Range and Accuracy, then decide an overall band. "
-    ),
-}
+# 动态加载：根据当前数据集获取模板
+def get_instruction_templates() -> Dict[int, str]:
+    """获取当前数据集的 instruction 模板"""
+    templates = _CURRENT_TEMPLATES.get("instruction_templates", {})
+    return {int(k): v for k, v in templates.items()}
+
+def get_score_range() -> Dict[str, float]:
+    """获取当前数据集的评分范围"""
+    return _CURRENT_TEMPLATES.get("score_range", {"min": 0, "max": 9, "step": 0.5})
+
+def calibrate_score(raw_score: float) -> float:
+    """根据当前数据集的评分范围校准分数"""
+    score_range = get_score_range()
+    min_score = score_range.get("min", 0)
+    max_score = score_range.get("max", 9)
+    step = score_range.get("step", 0.5)
+    
+    # 限制在范围内
+    score = max(min_score, min(max_score, raw_score))
+    
+    # 四舍五入到最近的步长
+    if step == 1:
+        score = round(score)
+    elif step == 0.5:
+        score = round(score * 2) / 2.0
+    else:
+        score = round(score / step) * step
+    
+    return float(score)
+
+INSTRUCTION_TEMPLATES: Dict[int, str] = get_instruction_templates()
 
 
 STRICTNESS_CLAUSES: Dict[int, str] = {
     0: "Be fair and neutral in scoring.",
-    1: "Be strict but fair, avoid band inflation.",
+    1: "Be strict but fair, avoid score inflation.",
 }
 
-OUTPUT_SCALAR_CLAUSE = (
-    "Output ONLY the final overall band score as a single number "
-    "from 0 to 9 in 0.5 steps (e.g., 6 or 6.5). "
-    "Do NOT output any explanation, text, or symbols."
-)
+def get_output_scalar_clause() -> str:
+    """根据当前数据集的评分范围生成输出指令"""
+    score_range = get_score_range()
+    min_score = score_range.get("min", 0)
+    max_score = score_range.get("max", 9)
+    step = score_range.get("step", 0.5)
+    
+    if step == 1:
+        example = f"{int((min_score + max_score) / 2)}"
+        step_desc = "whole numbers"
+    elif step == 0.5:
+        example = f"{(min_score + max_score) / 2:.1f}"
+        step_desc = "0.5 steps"
+    else:
+        example = f"{(min_score + max_score) / 2:.1f}"
+        step_desc = f"{step} steps"
+    
+    return (
+        f"Output ONLY the final overall score as a single number "
+        f"from {min_score} to {max_score} in {step_desc} (e.g., {example}). "
+        f"Do NOT output any explanation, text, or symbols."
+    )
 
 UNDERLEN_PENALTY = "If the essay is clearly under 250 words, lower the score by at least 0.5."
 
@@ -91,17 +151,21 @@ def build_full_prompt(
     + summary (stub)
     + target essay
     """
+    # 动态获取当前数据集的模板
+    templates = get_instruction_templates()
+    
     # ✅ instruction_text 优先
     if genome.instruction_text and str(genome.instruction_text).strip():
         instruction = str(genome.instruction_text).strip()
     else:
-        instruction = INSTRUCTION_TEMPLATES.get(genome.instruction_id, INSTRUCTION_TEMPLATES[0])
+        instruction = templates.get(genome.instruction_id, templates.get(0, ""))
 
     strictness = STRICTNESS_CLAUSES.get(genome.strictness, STRICTNESS_CLAUSES[1])
+    output_clause = get_output_scalar_clause()
 
     parts: List[str] = []
     parts.append(instruction + " " + strictness + " " + UNDERLEN_PENALTY)
-    parts.append(OUTPUT_SCALAR_CLAUSE)
+    parts.append(output_clause)
 
     if icl_examples:
         for ex in icl_examples:

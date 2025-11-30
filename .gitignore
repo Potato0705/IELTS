@@ -3,3 +3,12 @@
 .python-version
 uv.lock
 pyproject.toml
+
+# logs
+logs
+
+# MacOS
+.DS_Store
+
+# Data
+data

@@ -12,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from evolver.data_aware_prompt import PromptGenome, INSTRUCTION_TEMPLATES
+from evolver.data_aware_prompt import PromptGenome, get_instruction_templates
 from llm_api.openrouter_api import call_scoring_llm
 
 # ======= Individual =======
@@ -27,6 +27,8 @@ class Individual:
 
 
 # ======= Gene spaces =======
+# 动态获取当前数据集的 instruction templates
+INSTRUCTION_TEMPLATES = get_instruction_templates()
 INSTRUCTION_IDS = sorted(list(INSTRUCTION_TEMPLATES.keys()))
 STRICTNESS_LEVELS = [0, 1]
 OUTPUT_FORMATS = ["scalar"]
