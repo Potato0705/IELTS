@@ -245,25 +245,33 @@ def clean_ielts_kaggle_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, i
     return df, stats
 
 
-def clean_asap_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, int]]:
-    """清洗 ASAP 数据集"""
+def clean_asap_data(df: pd.DataFrame, essay_set: int = None) -> Tuple[pd.DataFrame, Dict[str, int]]:
+    """清洗 ASAP 数据集，可选择特定的 essay_set"""
     stats = {
         "raw_rows": len(df),
         "drop_na": 0,
         "bad_len": 0,
         "dedup": 0,
+        "filtered_essay_set": 0,
     }
     
     # ASAP 数据集列名: essay_id, essay_set, essay, rater1_domain1, rater2_domain1, domain1_score
     # 我们需要转换为统一格式: prompt, essay, band
     
+    # 如果指定了 essay_set，只保留该 essay_set 的数据
+    if essay_set is not None:
+        before = len(df)
+        df = df[df["essay_set"] == essay_set].copy()
+        stats["filtered_essay_set"] = before - len(df)
+        print(f"   筛选 essay_set={essay_set}: {len(df)} 行")
+    
     # 为每个 essay_set 创建对应的 prompt
     essay_set_prompts = {
         1: "Write an essay about the effects of computers on people.",
         2: "Write an essay about censorship in libraries.",
-        3: "Write an essay about the advantages and disadvantages of RFID technology.",
+        3: "Write a response discussing the advantages and disadvantages of RFID technology.",
         4: "Write an essay about the role of patience in life.",
-        5: "Write an essay describing a person who has influenced you.",
+        5: "Describe a person who has influenced you.",
         6: "Write an essay about the importance of laughter.",
         7: "Write an essay about the value of persistence.",
         8: "Write an essay about the benefits of laughter in difficult times.",
@@ -272,23 +280,15 @@ def clean_asap_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, int]]:
     # 添加 prompt 列
     df["prompt"] = df["essay_set"].map(essay_set_prompts)
     
-    # 使用 domain1_score 作为分数
+    # 使用 domain1_score 作为分数（保持原始分数，不归一化）
     df["band"] = df["domain1_score"]
     
     # 只保留需要的列
-    df = df[["prompt", "essay", "band"]].copy()
+    df = df[["prompt", "essay", "band", "essay_set"]].copy()
     
     # 删除缺失值
     df = df.dropna(subset=["prompt", "essay", "band"]).reset_index(drop=True)
-    stats["drop_na"] = stats["raw_rows"] - len(df)
-    
-    # 标准化分数到 0-9 范围（ASAP 分数范围因 essay_set 而异）
-    # 简单处理：将分数归一化到 0-9
-    min_score = df["band"].min()
-    max_score = df["band"].max()
-    if max_score > min_score:
-        df["band"] = ((df["band"] - min_score) / (max_score - min_score)) * 9.0
-        df["band"] = (df["band"].round() * 0.5).round(1)  # 四舍五入到 0.5
+    stats["drop_na"] = stats["raw_rows"] - len(df) - stats["filtered_essay_set"]
     
     # 过滤字数
     df["word_count"] = df["essay"].apply(lambda x: len(str(x).split()))
@@ -300,7 +300,9 @@ def clean_asap_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, int]]:
     before = len(df)
     df = df.drop_duplicates(subset=["prompt", "essay"]).reset_index(drop=True)
     stats["dedup"] = before - len(df)
-    df = df.drop(columns=["word_count"], errors="ignore")
+    
+    # 删除临时列
+    df = df.drop(columns=["word_count", "essay_set"], errors="ignore")
     
     stats["clean_rows"] = len(df)
     return df, stats
@@ -343,23 +345,45 @@ def main():
     print(f"🚀 数据准备脚本")
     print(f"   数据集: {DATASET_NAME}\n")
     
+    # 解析 ASAP essay_set
+    essay_set = None
+    base_dataset = DATASET_NAME
+    if DATASET_NAME.startswith("asap_"):
+        try:
+            essay_set = int(DATASET_NAME.split("_")[1])
+            if essay_set < 1 or essay_set > 8:
+                raise ValueError
+            base_dataset = "asap"
+            print(f"   ASAP Essay Set: {essay_set}\n")
+        except (IndexError, ValueError):
+            print(f"❌ 无效的 ASAP essay set: {DATASET_NAME}")
+            print("   支持的格式: asap_1, asap_2, ..., asap_8")
+            return
+    
     # 1. 下载原始数据
     raw_path = None
-    if DATASET_NAME == "ielts_chillies":
+    if base_dataset == "ielts_chillies":
         raw_path = download_ielts_chillies()
         clean_func = clean_ielts_chillies_data
+        clean_kwargs = {}
         output_dir = BASE_DIR / "data" / "ielts_chillies" / "processed"
-    elif DATASET_NAME == "ielts_kaggle":
+    elif base_dataset == "ielts_kaggle":
         raw_path = download_ielts_kaggle()
         clean_func = clean_ielts_kaggle_data
+        clean_kwargs = {}
         output_dir = BASE_DIR / "data" / "ielts_kaggle" / "processed"
-    elif DATASET_NAME == "asap":
+    elif base_dataset == "asap":
         raw_path = download_asap()
         clean_func = clean_asap_data
-        output_dir = BASE_DIR / "data" / "asap" / "processed"
+        clean_kwargs = {"essay_set": essay_set}
+        # 如果指定了 essay_set，使用独立目录
+        if essay_set:
+            output_dir = BASE_DIR / "data" / f"asap_{essay_set}" / "processed"
+        else:
+            output_dir = BASE_DIR / "data" / "asap" / "processed"
     else:
         print(f"❌ 未知的数据集: {DATASET_NAME}")
-        print("   支持的数据集: ielts_chillies, ielts_kaggle, asap")
+        print("   支持的数据集: ielts_chillies, ielts_kaggle, asap_1, asap_2, ..., asap_8")
         return
     
     if raw_path is None or not Path(raw_path).exists():
@@ -368,14 +392,14 @@ def main():
     
     # 2. 加载原始数据
     print(f"\n📂 加载原始数据: {raw_path}")
-    if DATASET_NAME == "asap":
+    if base_dataset == "asap":
         df = pd.read_csv(raw_path, sep='\t', encoding='latin-1')
     else:
         df = pd.read_csv(raw_path)
     
     # 3. 清洗数据
     print(f"\n🧹 清洗数据...")
-    clean_df, stats = clean_func(df)
+    clean_df, stats = clean_func(df, **clean_kwargs)
     
     print("\n=== 清洗统计 ===")
     for k, v in stats.items():

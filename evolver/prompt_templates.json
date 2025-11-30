@@ -1,0 +1,220 @@
+{
+  "ielts_chillies": {
+    "base_template": "You are an experienced IELTS Writing Task 2 examiner. Your job is to carefully read the essay and give an overall band score from 0 to 9.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score only on the writing quality.\n- Consider the following criteria: {criteria}.\n- Respond with ONLY a single number (the band score), no explanation.\n\nBand score:",
+    "search_space": {
+      "criteria": [
+        "Task Response, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy",
+        "Task Response and Coherence & Cohesion",
+        "Lexical Resource and Grammatical Range",
+        "Overall argument clarity, organization, and language accuracy",
+        "Logical structure, vocabulary variety, and grammar accuracy"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an IELTS Writing Task 2 examiner. Assess the essay using the official band descriptors.",
+      "1": "You are an IELTS Writing Task 2 examiner. Evaluate Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy, then decide an overall band."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 9,
+      "step": 0.5
+    }
+  },
+  "ielts_kaggle": {
+    "base_template": "You are an experienced IELTS Writing examiner. Your job is to carefully read the essay and give an overall band score from 0 to 9.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score only on the writing quality.\n- Consider the following criteria: {criteria}.\n- Respond with ONLY a single number (the band score), no explanation.\n\nBand score:",
+    "search_space": {
+      "criteria": [
+        "Task Response, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy",
+        "Task Response and Coherence & Cohesion",
+        "Lexical Resource and Grammatical Range",
+        "Overall argument clarity, organization, and language accuracy",
+        "Logical structure, vocabulary variety, and grammar accuracy"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an IELTS Writing examiner. Assess the essay using the official band descriptors.",
+      "1": "You are an IELTS Writing examiner. Evaluate Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy, then decide an overall band."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 9,
+      "step": 0.5
+    }
+  },
+  "asap_1": {
+    "essay_set": 1,
+    "prompt": "Write an essay about the effects of computers on people.",
+    "base_template": "You are an experienced essay grader. Read the student's persuasive essay about the effects of computers on people and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Argument strength, coherence, and language quality",
+        "Thesis clarity, supporting evidence, and writing mechanics",
+        "Overall persuasiveness and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this persuasive essay about computers' effects on people based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's argument strength, organization, language quality, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 2,
+      "max": 12,
+      "step": 1
+    }
+  },
+  "asap_2": {
+    "essay_set": 2,
+    "prompt": "Write an essay about censorship in libraries.",
+    "base_template": "You are an experienced essay grader. Read the student's persuasive essay about censorship in libraries and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Argument strength, coherence, and language quality",
+        "Thesis clarity, supporting evidence, and writing mechanics",
+        "Overall persuasiveness and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this persuasive essay about library censorship based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's argument strength, organization, language quality, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 1,
+      "max": 6,
+      "step": 1
+    }
+  },
+  "asap_3": {
+    "essay_set": 3,
+    "prompt": "Write a response discussing the advantages and disadvantages of RFID technology.",
+    "base_template": "You are an experienced essay grader. Read the student's source-dependent response about RFID technology and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Source integration, analysis depth, and language quality",
+        "Balanced discussion, evidence use, and writing mechanics",
+        "Overall analytical quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this source-dependent response about RFID technology based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's source integration, analysis, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 3,
+      "step": 1
+    }
+  },
+  "asap_4": {
+    "essay_set": 4,
+    "prompt": "Write an essay about the role of patience in life.",
+    "base_template": "You are an experienced essay grader. Read the student's source-dependent response about patience and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Source integration, analysis depth, and language quality",
+        "Balanced discussion, evidence use, and writing mechanics",
+        "Overall analytical quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this source-dependent response about patience based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's source integration, analysis, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 3,
+      "step": 1
+    }
+  },
+  "asap_5": {
+    "essay_set": 5,
+    "prompt": "Describe a person who has influenced you.",
+    "base_template": "You are an experienced essay grader. Read the student's narrative essay describing an influential person and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Narrative quality, descriptive detail, and language use",
+        "Character development, coherence, and writing mechanics",
+        "Overall storytelling quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this narrative essay about an influential person based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's narrative quality, descriptive detail, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 4,
+      "step": 1
+    }
+  },
+  "asap_6": {
+    "essay_set": 6,
+    "prompt": "Write an essay about the importance of laughter.",
+    "base_template": "You are an experienced essay grader. Read the student's source-dependent response about laughter and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Source integration, analysis depth, and language quality",
+        "Balanced discussion, evidence use, and writing mechanics",
+        "Overall analytical quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this source-dependent response about laughter based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's source integration, analysis, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 4,
+      "step": 1
+    }
+  },
+  "asap_7": {
+    "essay_set": 7,
+    "prompt": "Write an essay about the value of persistence.",
+    "base_template": "You are an experienced essay grader. Read the student's narrative essay about persistence and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Narrative quality, personal reflection, and language use",
+        "Story development, coherence, and writing mechanics",
+        "Overall storytelling quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this narrative essay about persistence based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's narrative quality, personal reflection, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 30,
+      "step": 1
+    }
+  },
+  "asap_8": {
+    "essay_set": 8,
+    "prompt": "Write an essay about the benefits of laughter in difficult times.",
+    "base_template": "You are an experienced essay grader. Read the student's source-dependent response about laughter in difficult times and assign a score.\n\n[Essay]\n{essay}\n\n[Instructions]\n- Base your score on the writing quality and content.\n- Consider: {criteria}.\n- Respond with ONLY a single number (the score), no explanation.\n\nScore:",
+    "search_space": {
+      "criteria": [
+        "Ideas and Content, Organization, Style, and Conventions",
+        "Source integration, analysis depth, and language quality",
+        "Balanced discussion, evidence use, and writing mechanics",
+        "Overall analytical quality and technical proficiency"
+      ]
+    },
+    "instruction_templates": {
+      "0": "You are an essay grader. Assess this source-dependent response about laughter in difficult times based on ideas, organization, style, and conventions.",
+      "1": "You are an essay grader. Evaluate the essay's source integration, analysis, organization, and conventions, then assign a score."
+    },
+    "score_range": {
+      "min": 0,
+      "max": 60,
+      "step": 1
+    }
+  }
+}

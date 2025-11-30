@@ -39,7 +39,7 @@ from evolver.prompt_evolver import (
     reset_llm_stats,   # ✅ 新增
     get_llm_stats,     # ✅ 新增
 )
-from evolver.data_aware_prompt import PromptGenome, build_full_prompt, INSTRUCTION_TEMPLATES
+from evolver.data_aware_prompt import PromptGenome, build_full_prompt, get_instruction_templates, get_score_range
 from evolver.icl_sampler import select_icl_examples
 from evolver.checkpoint import (  # 🔥 新增：断点续传
     save_checkpoint,
@@ -124,18 +124,27 @@ def log(msg: str) -> None:
 
 
 def parse_band_from_text(text: str, default: float = 5.0) -> float:
+    """解析 LLM 返回的分数，根据当前数据集的评分范围进行限制"""
     import re
+    from evolver.data_aware_prompt import get_score_range, calibrate_score
+    
     if not text:
         return default
+    
     clean = text.replace(",", " ").replace("\n", " ")
+    
+    # 先尝试匹配 X.5 格式（IELTS）
     nums = re.findall(r"(?<!\d)([0-9](?:\.5)?)(?!\d)", clean)
     if not nums:
+        # 再尝试匹配任意数字
         nums = re.findall(r"\d+(?:\.\d+)?", clean)
         if not nums:
             return default
+    
     val = float(nums[0])
-    val = max(0.0, min(9.0, val))
-    return round(val * 2) / 2.0
+    
+    # 🔥 使用动态的评分范围和校准
+    return calibrate_score(val)
 
 
 def quadratic_weighted_kappa(y_true: List[float], y_pred: List[float]) -> float:
@@ -349,7 +358,7 @@ def evaluate_individual(
             rag_examples=rag_examples,
             summary_text=None,
         )
-
+        
         if len(full_prompt) > MAX_CONTEXT_CHARS:
             head = full_prompt[: int(MAX_CONTEXT_CHARS * 0.75)]
             tail = full_prompt[-int(MAX_CONTEXT_CHARS * 0.20):]
@@ -381,7 +390,8 @@ def evaluate_individual(
             raw_band = parse_band_from_text(reply, default=5.0)
             valid_cnt += 1
 
-        calibrated = round(float(raw_band) * 2) / 2.0
+        from evolver.data_aware_prompt import calibrate_score
+        calibrated = calibrate_score(float(raw_band))
         preds.append(calibrated)
         labels.append(true_band)
 
@@ -480,9 +490,21 @@ def stratified_sample(eval_pool_full, n=32, seed=42):
 # ================== GA 主流程 ================== #
 
 def run_evolution_hf_icl_only():
+    global _LLM_CACHE  # 🔥 必须在函数最开始声明
+    
     print("==== Data-Aware AlphaEvolve (ICL-only baseline, OpenRouter) ====")
     print(f"Single model: {SINGLE_MODEL}")
     print(f"Checkpoint enabled: {ENABLE_CHECKPOINT}")
+    
+    # 🔥 打印数据集配置
+    from evolver.data_aware_prompt import get_score_range
+    score_range = get_score_range()
+    print(f"📊 Dataset: {DATASET_NAME}")
+    print(f"📊 Score range: {score_range['min']}-{score_range['max']}, step={score_range['step']}")
+    
+    # 🔥 清空 LLM 缓存（切换数据集时很重要）
+    _LLM_CACHE.clear()
+    print(f"🗑️  Cleared LLM cache")
 
     # ✅ 启动时加载模板池
     load_template_pool(TEMPLATE_POOL_JSON)
@@ -517,7 +539,6 @@ def run_evolution_hf_icl_only():
         history_llm_stats = checkpoint["history"]["llm_stats"]
         
         # 恢复 LLM 缓存
-        global _LLM_CACHE
         _LLM_CACHE = checkpoint.get("llm_cache", {})
         print(f"   Restored {len(_LLM_CACHE)} cached LLM calls")
         print(f"   Starting from generation {start_gen}")
@@ -588,10 +609,11 @@ def run_evolution_hf_icl_only():
             best_overall_ind = copy.deepcopy(gen_best_ind)
 
         # ✅ 计算偏差统计 + 喂给 LLM
+        templates = get_instruction_templates()
         best_text = (
             gen_best_ind.genome.instruction_text
-            or INSTRUCTION_TEMPLATES.get(
-                gen_best_ind.genome.instruction_id, INSTRUCTION_TEMPLATES[0]
+            or templates.get(
+                gen_best_ind.genome.instruction_id, templates.get(0, "")
             )
         )
         bias_stats = compute_bias_stats(gen_best_ind.labels or [], gen_best_ind.preds or [])
@@ -848,8 +870,9 @@ def run_evolution_hf_icl_only():
             )
             _LLM_CACHE[cache_key] = reply
 
+        from evolver.data_aware_prompt import calibrate_score
         raw_band = parse_band_from_text(reply or "", default=5.0)
-        pred_band = round(raw_band * 2) / 2.0
+        pred_band = calibrate_score(raw_band)
 
         preds.append(pred_band)
         raws.append(raw_band)
