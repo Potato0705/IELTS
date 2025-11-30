@@ -77,11 +77,12 @@ ENABLE_CHECKPOINT = os.getenv("ENABLE_CHECKPOINT", "1") == "1"
 CHECKPOINT_EVERY_GEN = int(os.getenv("CHECKPOINT_EVERY_GEN", "1"))  # 每 N 代保存一次
 
 # -------- GA 超参数 --------
-POP_SIZE = 10
-N_GENERATIONS = 6
-TOURNAMENT_K = 4
-CROSSOVER_RATE = 0.85
-MUTATION_RATE = 0.35
+# 🔥 从环境变量读取，支持动态配置
+POP_SIZE = int(os.getenv("POP_SIZE", "10"))
+N_GENERATIONS = int(os.getenv("N_GENERATIONS", "6"))
+TOURNAMENT_K = int(os.getenv("TOURNAMENT_K", "4"))
+CROSSOVER_RATE = float(os.getenv("CROSSOVER_RATE", "0.85"))
+MUTATION_RATE = float(os.getenv("MUTATION_RATE", "0.35"))
 
 # 🔥 分阶段评估配置
 USE_STAGED_EVAL = os.getenv("USE_STAGED_EVAL", "0") == "1"
@@ -534,6 +535,16 @@ def run_evolution_hf_icl_only():
         print(f"\n=== Generation {gen}/{N_GENERATIONS} ===")
 
         # ✅ 每代开始清空 LLM 统计：统计“本代产生下一代时”的 LLM 贡献
+
+        # 🔥 动态确定评估样本数
+        n_samples = get_eval_pool_size(gen, N_GENERATIONS)
+        
+        if len(eval_pool_full) > n_samples:
+            eval_pool = stratified_sample(eval_pool_full, n=n_samples, seed=42+gen)
+        else:
+            eval_pool = eval_pool_full
+        
+        print(f"📊 Evaluating on {len(eval_pool)} samples")
         reset_llm_stats()
 
         gen_best_ind: Optional[Individual] = None
@@ -584,6 +595,81 @@ def run_evolution_hf_icl_only():
 
         # ✅ 把好模板写进模板池并持久化
         update_template_pool(best_text, gen_best_fitness, gen_best_metrics, gen)
+
+        # 🔥 保存每代的详细日志
+        gen_log = {
+            "generation": gen,
+            "timestamp": time.time(),
+            "best_fitness": gen_best_fitness,
+            "best_metrics": gen_best_metrics,
+            "best_genome": asdict(gen_best_ind.genome),
+            "overall_best_fitness": best_overall_fitness,
+            "population_stats": {
+                "size": len(population),
+                "avg_fitness": sum(ind.fitness for ind in population if ind.fitness is not None) / len([ind for ind in population if ind.fitness is not None]) if any(ind.fitness is not None for ind in population) else 0,
+                "max_fitness": max((ind.fitness for ind in population if ind.fitness is not None), default=0),
+                "min_fitness": min((ind.fitness for ind in population if ind.fitness is not None), default=0),
+            },
+            "history": {
+                "qwk": history_qwk.copy(),
+                "pearson": history_pearson.copy(),
+                "rmse": history_rmse.copy(),
+            }
+        }
+        
+        # 保存到单独的代数日志文件
+        gen_log_file = LOG_DIR / f"generation_{gen:02d}.json"
+        with open(gen_log_file, "w", encoding="utf-8") as f:
+            json.dump(gen_log, f, ensure_ascii=False, indent=2)
+        print(f"📝 Generation log saved: {gen_log_file}")
+        
+        # 追加到总日志文件
+        progress_log_file = LOG_DIR / "evolution_progress.jsonl"
+        with open(progress_log_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(gen_log, ensure_ascii=False) + "\n")
+        
+        # 🔥 更新实时进度摘要（易读格式）
+        summary_file = LOG_DIR / "progress_summary.txt"
+        with open(summary_file, "w", encoding="utf-8") as f:
+            f.write(f"{'='*60}\n")
+            f.write(f"IELTS Prompt Evolution - Progress Summary\n")
+            f.write(f"{'='*60}\n\n")
+            f.write(f"Current Generation: {gen}/{N_GENERATIONS}\n")
+            f.write(f"Progress: {gen/N_GENERATIONS*100:.1f}%\n")
+            f.write(f"Started: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            f.write(f"{'='*60}\n")
+            f.write(f"Best Performance So Far\n")
+            f.write(f"{'='*60}\n")
+            f.write(f"Overall Best Fitness: {best_overall_fitness:.4f}\n")
+            if best_overall_ind and best_overall_ind.metrics:
+                f.write(f"  QWK:     {best_overall_ind.metrics.get('qwk', 0):.4f}\n")
+                f.write(f"  Pearson: {best_overall_ind.metrics.get('pearson', 0):.4f}\n")
+                f.write(f"  RMSE:    {best_overall_ind.metrics.get('rmse', 0):.4f}\n")
+                f.write(f"  Exact:   {best_overall_ind.metrics.get('exact_acc', 0):.3f}\n")
+                f.write(f"  Adj:     {best_overall_ind.metrics.get('adj_acc', 0):.3f}\n\n")
+            
+            f.write(f"{'='*60}\n")
+            f.write(f"Current Generation ({gen}) Best\n")
+            f.write(f"{'='*60}\n")
+            f.write(f"Fitness: {gen_best_fitness:.4f}\n")
+            f.write(f"  QWK:     {gen_best_metrics['qwk']:.4f}\n")
+            f.write(f"  Pearson: {gen_best_metrics['pearson']:.4f}\n")
+            f.write(f"  RMSE:    {gen_best_metrics['rmse']:.4f}\n")
+            f.write(f"  Exact:   {gen_best_metrics.get('exact_acc', 0):.3f}\n")
+            f.write(f"  Adj:     {gen_best_metrics.get('adj_acc', 0):.3f}\n\n")
+            
+            f.write(f"{'='*60}\n")
+            f.write(f"History (QWK by Generation)\n")
+            f.write(f"{'='*60}\n")
+            for i, qwk in enumerate(history_qwk, 1):
+                marker = " ⭐ BEST" if i == history_qwk.index(max(history_qwk)) + 1 else ""
+                f.write(f"Gen {i:2d}: {qwk:.4f}{marker}\n")
+            
+            if len(history_qwk) > 1:
+                f.write(f"\nImprovement: {history_qwk[-1] - history_qwk[0]:+.4f}\n")
+                f.write(f"Best QWK: {max(history_qwk):.4f}\n")
+                f.write(f"Avg QWK:  {sum(history_qwk)/len(history_qwk):.4f}\n")
 
         # ====== 产生下一代（最后一代不需要生成） ======
         if gen < N_GENERATIONS:
