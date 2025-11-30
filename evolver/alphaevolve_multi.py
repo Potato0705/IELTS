@@ -54,8 +54,12 @@ from llm_api.openrouter_api import call_scoring_llm
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
-RAW_HF_TRAIN = BASE_DIR / "data" / "raw" / "hf_dataset" / "train.csv"
-PROC_DIR = BASE_DIR / "data" / "processed" / "hf_dataset"
+# 🔥 从环境变量读取数据集名称
+DATASET_NAME = os.getenv("DATASET_NAME", "ielts_chillies")
+DATASET_DIR = BASE_DIR / "data" / DATASET_NAME
+
+RAW_HF_TRAIN = DATASET_DIR / "raw" / "train.csv"
+PROC_DIR = DATASET_DIR / "processed"
 TRAIN_CLEAN = PROC_DIR / "train_clean.csv"
 EVAL_CLEAN = PROC_DIR / "eval_clean.csv"
 

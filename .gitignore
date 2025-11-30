@@ -9,3 +9,6 @@ logs
 
 # MacOS
 .DS_Store
+
+# Data
+data
