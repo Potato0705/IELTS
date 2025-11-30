@@ -9,10 +9,6 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# 🔥 重要：在导入任何模块之前先加载环境变量
-from dotenv import load_dotenv
-load_dotenv()
-
 # 导入并运行主函数
 from evolver.alphaevolve_multi import run_evolution_hf_icl_only
 

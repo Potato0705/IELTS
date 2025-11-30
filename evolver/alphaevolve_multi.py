@@ -731,7 +731,7 @@ def run_evolution_hf_icl_only():
         history_llm_stats.append({"gen": gen, **stats})
         print(f"\n[Gen {gen}] LLM mutation stats:")
         print(json.dumps(stats, ensure_ascii=False, indent=2))
-        
+
         # 🔥 保存检查点
         if ENABLE_CHECKPOINT and gen % CHECKPOINT_EVERY_GEN == 0:
             try:

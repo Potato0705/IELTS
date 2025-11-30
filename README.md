@@ -1,6 +1,6 @@
-# 作文评分 Prompt 进化系统
+# IELTS 作文评分 Prompt 进化系统
 
-基于遗传算法的作文自动评分 Prompt 优化框架。
+基于遗传算法的 IELTS 作文自动评分 Prompt 优化框架。
 
 ## 功能特性
 
@@ -32,12 +32,6 @@ pip install -r requirements.txt
 export OPENROUTER_API_KEY=your_key_here
 ```
 
-### 准备数据
-
-```bash
-python prepare_data.py
-```
-
 ### 运行进化
 
 ```bash
@@ -47,37 +41,16 @@ python run_evolution.py
 ## 项目结构
 
 ```
-├── evolver/                      # 进化算法核心
-│   ├── alphaevolve_multi.py      # 主进化流程
-│   ├── prompt_evolver.py         # 遗传算子
-│   ├── data_aware_prompt.py      # Prompt 构建（支持多数据集）
-│   ├── prompt_templates.json     # 数据集特定的 Prompt 模板
-│   ├── icl_sampler.py            # ICL 示例采样
-│   └── checkpoint.py             # 断点续传
-├── llm_api/                      # LLM API 封装
-│   └── openrouter_api.py         # OpenRouter API 调用
-├── scorer/                       # 评分器和特征提取
-│   ├── infer_scorer.py           # 推理评分器
-│   ├── corrector.py              # 分数校正器
-│   └── features.py               # 特征提取
-├── utils/                        # 工具函数
-│   ├── metrics.py                # 评估指标
-│   └── preprocess.py             # 数据预处理
-├── data/                         # 数据集（被 .gitignore 忽略）
-│   ├── ielts_chillies/           # IELTS Chillies 数据集
-│   │   ├── raw/                  # 原始数据
-│   │   └── processed/            # 清洗后的数据
-│   ├── ielts_kaggle/             # IELTS Kaggle 数据集
-│   ├── asap_1/ ... asap_8/       # ASAP 8 个 essay sets
-│   └── ...
-├── logs/                         # 运行日志和结果
-│   ├── checkpoints/              # 断点续传检查点
-│   ├── best_scoring_prompt_hf.json
-│   └── metrics_curve_hf.png
-├── prepare_data.py               # 数据准备脚本
-├── run_evolution.py              # 启动脚本
-├── .env                          # 环境配置（数据集选择等）
-└── requirements.txt              # Python 依赖
+├── evolver/              # 进化算法核心
+│   ├── alphaevolve_multi.py    # 主进化流程
+│   ├── prompt_evolver.py       # 遗传算子
+│   ├── data_aware_prompt.py    # Prompt 构建
+│   └── icl_sampler.py          # ICL 示例采样
+├── llm_api/              # LLM API 封装
+├── scorer/               # 评分器和特征提取
+├── data/                 # 数据集
+├── logs/                 # 运行日志和结果
+└── run_evolution.py      # 启动脚本
 ```
 
 ## 输出结果
